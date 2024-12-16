@@ -3,7 +3,7 @@
 nothing
 using Rasters
 using ArchGDAL
-using GeometryOps
+import GeometryOps as GO
 using GeoDataFrames
 using GLMakie
 using ImageFiltering
@@ -23,6 +23,7 @@ gpkg_labels = Symbol.(first.(splitext.(basename.(gpkgs))))
 geoms = NamedTuple(gpkg_labels .=> gpkgs)
 
 # load first layer
+geoms.reindeer_area
 template = GeoDataFrames.read(geoms.reindeer_area)
 # set a grid for rasterization based on the extent
 # we could make the resolution as small as wanted if we want to test rasters with
@@ -32,7 +33,7 @@ res = 50
 st = map(geoms) do path
     layer_vect = GeoDataFrames.read(path)
     rasterize(count, layer_vect; 
-        to=template, res, missingval=0, geometrycolumn=:geom
+        to=template, res, missingval=0
     )
 end |> RasterStack
 
@@ -50,8 +51,7 @@ Rasters.rplot(st) # rplot is for multi-plot stacks, Makie.plot will do this one 
 radus = 1000
 r = radus ÷ res
 d = 2r + 1
-@time layers_zoi = maplayers(st) do rast
-    @show name(rast)
+@time layers_zoi = maplayers(st[(:reindeer_cabins, :reindeer_roads_public, :reindeer_roads_private)]) do rast
     data = mapwindow(sum, rast, (d, d))
     Raster(data, dims(rast); missingval=0)
 end
@@ -97,7 +97,7 @@ reindeer_lines = GeoDataFrames.read("data/reindeer_lines.gpkg")
 Makie.plot(reindeer_lines.geom)
 
 # Take zonal statistics for lines
-@time means = zonal(mean, layers_zoi; of=reindeer_lines);
+@time means = zonal(mean, layers_zoi; of=reindeer_lines, threaded=true);
 
 #----
 # step 4 - spatial prediction - we can develop that later, we can add here a simple GLM-type model and then predict it in space.
