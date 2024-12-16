@@ -96,20 +96,13 @@ Makie.plot(reindeer_pts.geom)
 reindeer_lines = GeoDataFrames.read("data/reindeer_lines.gpkg")
 Makie.plot(reindeer_lines.geom)
 
-# extract for points
-
-# We could do it with extract and groupby...
-# @time reindeer_covar_lin = extract(layers_zoi, reindeer_lines; 
-#     geometry=false, id=true
-# ) |> DataFrame
-# gdf = groupby(reindeer_covar_lin, :id)
-# means = DataFrames.combine(gdf, names(gdf) .=> mean)
-
-# But we can just calculate stats on the fly in `zonal`
+# Take zonal statistics for lines
 @time means = zonal(mean, layers_zoi; of=reindeer_lines);
 
 #----
 # step 4 - spatial prediction - we can develop that later, we can add here a simple GLM-type model and then predict it in space.
+
+using Pkg
 
 import SpeciesDistributionModels as SDM
 
