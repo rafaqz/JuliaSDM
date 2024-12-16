@@ -19,7 +19,7 @@ using Statistics
 # list vector layers
 filepaths = readdir("data/"; join=true)
 gpkgs = filter(x -> occursin(".gpkg", x), filepaths)
-gpkg_labels = (first.(splitext.(basename.(gpkgs))))
+gpkg_labels = Symbol.(first.(splitext.(basename.(gpkgs))))
 geoms = NamedTuple(gpkg_labels .=> gpkgs)
 
 # load first layer
